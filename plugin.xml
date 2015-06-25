@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <?eclipse version="3.0"?>
 
-<plugin version="1.0.3" name="CodeGenerationPlugin" id="menu.code.geenerateowlcode">
+<plugin>
     <extension
     	id="menu.code.generateowlcode" 
     	point="org.protege.editor.core.application.EditorKitMenuAction">
-        <name value="Generate Java code..."/>
+        <name value="Generate Java code for UniversAAL..."/>
         <class value="org.protege.editor.owl.codegeneration.GenerateProtegeOwlJavaCodeAction"/>
         <toolTip value="Generate Java code from the active ontology"/>
         <path value="org.protege.editor.owl.menu.tools/SlotH-A"/>

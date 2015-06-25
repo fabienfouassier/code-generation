@@ -23,6 +23,8 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 
+import org.apache.velocity.app.VelocityEngine;
+
 public class GenerateSimpleJavaCode {
 	public static Logger LOGGER = Logger.getLogger(GenerateTestCode.class);
 	public static final String DELETE_OPT   = "d";
@@ -34,6 +36,8 @@ public class GenerateSimpleJavaCode {
 	public static void main(String [] args) throws Exception {
 		CommandLine parsedOptions = parseArguments(args);
 
+                VelocityEngine ve = new VelocityEngine();
+                ve.init();
 		String outputFolderName = parsedOptions.getOptionValue(OUTPUT_OPT);
 		File outputFolder = outputFolderName != null ? new File(outputFolderName) : new File("");
 		if (parsedOptions.getArgList().size() != 1) {
