@@ -11,6 +11,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
 import org.protege.owl.codegeneration.CodeGenerationOptions;
 import org.protege.owl.codegeneration.DefaultWorker;
+import org.protege.owl.codegeneration.Renamer;
 import org.protege.owl.codegeneration.inference.CodeGenerationInference;
 import org.protege.owl.codegeneration.inference.ReasonerBasedInference;
 import org.protege.owl.codegeneration.inference.SimpleInference;
@@ -22,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
-
+import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 public class GenerateSimpleJavaCode {
@@ -115,4 +116,10 @@ public class GenerateSimpleJavaCode {
 	    file.delete();
 	}
 
+	public static void initializeContext(VelocityContext context) {
+		context.put("root", CodeGenerationInference.class);
+		context.put("options", CodeGenerationOptions.class);
+		context.put("renamer", Renamer.class);
+	}
+	
 }

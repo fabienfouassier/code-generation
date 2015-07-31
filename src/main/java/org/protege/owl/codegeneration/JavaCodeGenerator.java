@@ -1,41 +1,26 @@
 package org.protege.owl.codegeneration;
 
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_CLASS_VOCABULARY;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_DATA_PROPERTY_IMPLEMENTATION;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FUNCTIONAL_DATA_PROPERTY_IMPLEMENTATION;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_DATA_PROPERTY_INTERFACE;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FUNCTIONAL_DATA_PROPERTY_INTERFACE;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_DATA_PROPERTY_VOCABULARY;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FACTORY_CLASS;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FACTORY_HEADER;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FACTORY_TAIL;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_IMPLEMENTATION_HEADER;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_IMPLEMENTATION_TAIL;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_INTERFACE_HEADER;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_INTERFACE_TAIL;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_OBJECT_PROPERTY_IMPLEMENTATION;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FUNCTIONAL_OBJECT_PROPERTY_IMPLEMENTATION;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_OBJECT_PROPERTY_INTERFACE;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FUNCTIONAL_OBJECT_PROPERTY_INTERFACE;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_OBJECT_PROPERTY_VOCABULARY;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_VOCABULARY_HEADER;
-import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_VOCABULARY_TAIL;
+
+import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_FACTORY_VM;
+import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_IMPLEMENTATION_VM;
+import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_INTERFACE_VM;
+import static org.protege.owl.codegeneration.CodeGenerationPhase.CREATE_VOCABULARY_VM;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
-import org.protege.owl.codegeneration.inference.CodeGenerationInference;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
+import org.protege.editor.owl.codegeneration.ProtegeNames;
+import org.protege.editor.owl.model.OWLModelManager;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 /**
  * A class that can create Java interfaces in the Protege-OWL format
@@ -47,7 +32,6 @@ public class JavaCodeGenerator {
 	public static final Logger LOGGER = Logger.getLogger(JavaCodeGenerator.class);
 
     private Worker worker;
-    private CodeGenerationInference inference;
 
     /**
      * Constructor
@@ -55,7 +39,6 @@ public class JavaCodeGenerator {
     public JavaCodeGenerator(Worker worker) {
     	this.worker = worker;
         worker.initialize();
-        inference = worker.getInference();
     }
 
     /**
@@ -86,8 +69,6 @@ public class JavaCodeGenerator {
         printInterfaceCode(owlClass, printWriter);
         printWriter.close();
     }
-    
-    
 
     /**
      * Writes the interface code for the provided OWlClass to the PrintStream
@@ -95,34 +76,26 @@ public class JavaCodeGenerator {
      * @param interfaceName 
      * @param owlClass
      * @param printWriter
+     * @throws IOException 
      */
-    private void printInterfaceCode(OWLClass owlClass, PrintWriter printWriter) {
-        Collection<OWLObjectProperty> owlObjectProperties = worker.getObjectPropertiesForClass(owlClass);
-        Collection<OWLDataProperty> owlDataProperties     = worker.getDataPropertiesForClass(owlClass);
+    private void printInterfaceCode(OWLClass owlClass, PrintWriter printWriter) throws IOException {
+    	//Collection<OWLObjectProperty> owlObjectProperties = worker.getObjectPropertiesForClass(owlClass);
+        //Collection<OWLDataProperty> owlDataProperties = worker.getDataPropertiesForClass(owlClass);
         
-    	Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
+    	//Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
     	
-    	fillAndWriteTemplate(printWriter, CREATE_INTERFACE_HEADER, substitutions, owlClass, null);
-
-        for (OWLObjectProperty owlObjectProperty : owlObjectProperties) {
-        	if (inference.isFunctional(owlObjectProperty)) {
-        		fillAndWriteTemplate(printWriter, CREATE_FUNCTIONAL_OBJECT_PROPERTY_INTERFACE, substitutions, owlClass, owlObjectProperty);        		
-        	}
-        	else {
-        		fillAndWriteTemplate(printWriter, CREATE_OBJECT_PROPERTY_INTERFACE, substitutions, owlClass, owlObjectProperty);
-        	}
+    	/*for (OWLObjectProperty owlObjectProperty : owlObjectProperties) {
+			worker.configureAllSubstitutions(substitutions, owlClass, owlObjectProperty);
         }
         
-        for (OWLDataProperty owlDataProperty :owlDataProperties) {
-        	if (inference.isFunctional(owlDataProperty)) {
-        		fillAndWriteTemplate(printWriter, CREATE_FUNCTIONAL_DATA_PROPERTY_INTERFACE, substitutions, owlClass, owlDataProperty);
-        	}
-        	else {
-        		fillAndWriteTemplate(printWriter, CREATE_DATA_PROPERTY_INTERFACE, substitutions, owlClass, owlDataProperty);
-        	}
-        }
-    	
-        fillAndWriteTemplate(printWriter, CREATE_INTERFACE_TAIL, substitutions, owlClass, null);
+        for (OWLDataProperty owlDataProperty : owlDataProperties) {
+			worker.configureAllSubstitutions(substitutions, owlClass, owlDataProperty);
+        }*/
+        
+        String template = worker.getTemplate(CREATE_INTERFACE_VM);
+        Reader reader = new StringReader(template);
+    	fillTemplate(printWriter, template, reader);
+    	reader.close();
     }
     
     
@@ -134,38 +107,27 @@ public class JavaCodeGenerator {
         printWriter.close();
     }
 
-    private void printImplementationCode(OWLClass owlClass, PrintWriter printWriter) {
-        Collection<OWLObjectProperty> owlObjectProperties = worker.getObjectPropertiesForClass(owlClass);
-        Collection<OWLDataProperty> owlDataProperties = worker.getDataPropertiesForClass(owlClass);
+    private void printImplementationCode(OWLClass owlClass, PrintWriter printWriter) throws IOException {
+        //Collection<OWLObjectProperty> owlObjectProperties = worker.getObjectPropertiesForClass(owlClass);
+        //Collection<OWLDataProperty> owlDataProperties = worker.getDataPropertiesForClass(owlClass);
         
-    	Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
-        
-    	fillAndWriteTemplate(printWriter, CREATE_IMPLEMENTATION_HEADER, substitutions, owlClass, null);
-        
-    	for (OWLObjectProperty owlObjectProperty : owlObjectProperties) {
-    		if (inference.isFunctional(owlObjectProperty)) {
-                fillAndWriteTemplate(printWriter, CREATE_FUNCTIONAL_OBJECT_PROPERTY_IMPLEMENTATION, substitutions, owlClass, owlObjectProperty);    		
-    		}
-    		else {
-    			fillAndWriteTemplate(printWriter, CREATE_OBJECT_PROPERTY_IMPLEMENTATION, substitutions, owlClass, owlObjectProperty);
-    		}
+    	//Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
+                
+    	/*for (OWLObjectProperty owlObjectProperty : owlObjectProperties) {
+			worker.configureAllSubstitutions(substitutions, owlClass, owlObjectProperty);
         }
         
-        for (OWLDataProperty owlDataProperty :owlDataProperties) {
-        	if (inference.isFunctional(owlDataProperty)) {
-                fillAndWriteTemplate(printWriter, CREATE_FUNCTIONAL_DATA_PROPERTY_IMPLEMENTATION, substitutions, owlClass, owlDataProperty);        		
-        	}
-        	else {
-        		fillAndWriteTemplate(printWriter, CREATE_DATA_PROPERTY_IMPLEMENTATION, substitutions, owlClass, owlDataProperty);
-        	}
-        }
-        
-        fillAndWriteTemplate(printWriter, CREATE_IMPLEMENTATION_TAIL, substitutions, owlClass, null);
+        for (OWLDataProperty owlDataProperty : owlDataProperties) {
+			worker.configureAllSubstitutions(substitutions, owlClass, owlDataProperty);
+        }*/
+                
+        String template = worker.getTemplate(CREATE_IMPLEMENTATION_VM);
+        Reader reader = new StringReader(template);
+        fillTemplate(printWriter, template, reader);
+        reader.close();
     }
 
-
-
-    /** Initilizes the vocabulary code generation 
+    /** Initializes the vocabulary code generation 
      * @param owlClassList
      * @throws IOException
      */
@@ -173,26 +135,28 @@ public class JavaCodeGenerator {
         File vocabularyFile = worker.getVocabularyFile();
         FileWriter vocabularyfileWriter = new FileWriter(vocabularyFile);
         PrintWriter vocabularyPrintWriter = new PrintWriter(vocabularyfileWriter);
-    	Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
-        fillAndWriteTemplate(vocabularyPrintWriter, CREATE_VOCABULARY_HEADER, substitutions, null, null);
+    	//Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
+            	
+    	/*for (OWLClass owlClass : owlClassList) {
+        	Collection<OWLObjectProperty> owlObjectProperties = worker.getObjectPropertiesForClass(owlClass);
+            Collection<OWLDataProperty> owlDataProperties = worker.getDataPropertiesForClass(owlClass);
 
-        for (OWLClass owlClass : owlClassList) {
-            fillAndWriteTemplate(vocabularyPrintWriter, CREATE_CLASS_VOCABULARY, substitutions, owlClass, null);
-        }
-
-        for (OWLObjectProperty owlObjectProperty : worker.getOwlObjectProperties()) {
-            fillAndWriteTemplate(vocabularyPrintWriter, CREATE_OBJECT_PROPERTY_VOCABULARY, substitutions, null, owlObjectProperty);
-        }
-
-        for (OWLDataProperty owlDataProperty : worker.getOwlDataProperties()) {
-            fillAndWriteTemplate(vocabularyPrintWriter, CREATE_DATA_PROPERTY_VOCABULARY, substitutions, null, owlDataProperty);
-        }
-        
-        fillAndWriteTemplate(vocabularyPrintWriter, CREATE_VOCABULARY_TAIL, substitutions, null, null);
-    
+        	for (OWLObjectProperty owlObjectProperty : owlObjectProperties) {
+    			worker.configureAllSubstitutions(substitutions, owlClass, owlObjectProperty);
+    		}
+        	
+        	for (OWLDataProperty owlDataProperty : owlDataProperties) {
+    			worker.configureAllSubstitutions(substitutions, owlClass, owlDataProperty);
+        	}
+        }*/
+    	
+        String template = worker.getTemplate(CREATE_VOCABULARY_VM);
+        Reader reader = new StringReader(template);
+        fillTemplate(vocabularyPrintWriter, template, reader);
         vocabularyPrintWriter.close();
+        reader.close();
     }
-
+    
     /** Initializes the code generation for factory classes 
      * @param owlClassList
      * @throws IOException
@@ -204,36 +168,33 @@ public class JavaCodeGenerator {
         factoryFileWriter = new FileWriter(factoryFile);
         factoryPrintWriter = new PrintWriter(factoryFileWriter);
         
-    	Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
-        
-    	fillAndWriteTemplate(factoryPrintWriter, CREATE_FACTORY_HEADER, substitutions, null, null);
+    	//Map<SubstitutionVariable, String> substitutions = new EnumMap<SubstitutionVariable, String>(SubstitutionVariable.class);
+    	
+    	/*for (OWLClass owlClass : owlClassList) {
+			worker.configureAllSubstitutions(substitutions, owlClass, null);
+			
+    	}*/
 
-        for (OWLClass owlClass : owlClassList) {
-            fillAndWriteTemplate(factoryPrintWriter, CREATE_FACTORY_CLASS, substitutions, owlClass, null);
-        }
-        
-        fillAndWriteTemplate(factoryPrintWriter, CREATE_FACTORY_TAIL, substitutions, null, null);
-        
-        factoryPrintWriter.close();
-    }
-
-    private void fillAndWriteTemplate(PrintWriter writer, 
-    		                               CodeGenerationPhase phase, 
-    		                               Map<SubstitutionVariable, String> substitutions, 
-    		                               OWLClass owlClass, OWLEntity owlProperty) {
-    	worker.configureSubstitutions(phase, substitutions, owlClass, owlProperty);
-        String template = worker.getTemplate(phase, owlClass, owlProperty);
-    	fillTemplate(writer, template, substitutions);
+    	String template = worker.getTemplate(CREATE_FACTORY_VM);
+    	Reader reader = new StringReader(template);
+    	fillTemplate(factoryPrintWriter, template, reader);
+    	factoryPrintWriter.close();
+    	reader.close();
     }
 	
-	public static void fillTemplate(PrintWriter writer, String template, Map<SubstitutionVariable, String> substitutions) {
-		for (Entry<SubstitutionVariable, String> entry : substitutions.entrySet()) {
-			SubstitutionVariable var = entry.getKey();
-			String replacement = entry.getValue();
-			template = template.replaceAll("\\$\\{" + var.getName() + "\\}", replacement);
-		}
-		writer.append(template);
+	private void fillTemplate(PrintWriter writer, String template, Reader reader) {
+		VelocityEngine ve = new VelocityEngine();
+		ve.init();
+		VelocityContext context = new VelocityContext();
+		initializeContext(context);
+		Velocity.evaluate(context, writer, "velocity string replacement", reader);
 	}
-
-
+	
+	private void initializeContext(VelocityContext context) {
+		context.put("root", worker.getInference());
+		context.put("options", new CodeGenerationOptions());
+		context.put("renamer", new Renamer());
+	}
+	// the root works a little but only for recovering the owlClasses.
+	// the options works only for getting the IRI of the class.
 }

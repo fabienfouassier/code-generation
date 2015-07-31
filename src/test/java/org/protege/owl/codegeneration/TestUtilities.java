@@ -34,8 +34,6 @@ public class TestUtilities {
     
     
     
-    
-    
     public static String PIZZA_ONTOLOGY = "pizza.owl";
     public static String PIZZA_NS = "http://www.co-ode.org/ontologies/pizza/pizza.owl";
 

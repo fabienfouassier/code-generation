@@ -38,10 +38,10 @@ public interface Worker {
 	
 	File getFactoryFile();
 	
-	void configureSubstitutions(CodeGenerationPhase phase,
-			                    Map<SubstitutionVariable, String> substitutions,
+	void configureAllSubstitutions(Map<SubstitutionVariable, String> substitutions,
 			                    OWLClass owlClass,
 			                    OWLEntity owlProperty);
 	
-	String getTemplate(CodeGenerationPhase phase, OWLClass owlClass, Object owlProperty);
+	
+	String getTemplate(CodeGenerationPhase phase);
 }
