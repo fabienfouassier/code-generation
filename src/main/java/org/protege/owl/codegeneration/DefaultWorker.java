@@ -59,7 +59,7 @@ public class DefaultWorker implements Worker {
     	Worker worker = new DefaultWorker(ontology, options, names, inference);
     	JavaCodeGenerator generator = new JavaCodeGenerator(worker);
     	generator.createAll();
-    }    
+    }
 	
     
     public DefaultWorker(OWLOntology ontology, 
@@ -145,7 +145,7 @@ public class DefaultWorker implements Worker {
     }
 
 
-	public String getTemplate(CodeGenerationPhase phase, OWLClass owlClass, Object owlProperty) {
+	public String getTemplate(CodeGenerationPhase phase) {
     	String resource = "/" + phase.getTemplateName();
 		String template = templateMap.get(phase);
 		if (template == null) {
@@ -173,11 +173,12 @@ public class DefaultWorker implements Worker {
 		return template;
     }
 	
-	public void configureSubstitutions(CodeGenerationPhase phase,
+	/*public void configureSubstitutions(CodeGenerationPhase phase,
 									   Map<SubstitutionVariable, String> substitutions, 
 									   OWLClass owlClass,
 									   OWLEntity owlProperty) {
 		switch (phase) {
+			
 		case CREATE_VOCABULARY_HEADER:
 		case CREATE_FACTORY_HEADER:
 			configureCommonSubstitutions(substitutions, owlClass, owlProperty);
@@ -215,12 +216,24 @@ public class DefaultWorker implements Worker {
 		default:
 			break;
 		}
-		
+	}*/
+	
+	public void configureAllSubstitutions (Map<SubstitutionVariable, String> substitutions, 
+									   OWLClass owlClass,
+									   OWLEntity owlProperty) {
+		if (owlProperty == null) {
+			configureCommonSubstitutions(substitutions);
+			configureClassSubstitutions(substitutions, owlClass);
+		}
+		else {
+			configureCommonSubstitutions(substitutions);
+			configureClassSubstitutions(substitutions, owlClass);
+			configurePropertySubstitutions(substitutions, owlProperty);
+			propertyDeclarations.get(owlClass, owlProperty).configureSubstitutions(substitutions);
+		}		
 	}
-
-	private void configureCommonSubstitutions(Map<SubstitutionVariable, String> substitutions, 
-											  OWLClass owlClass,
-											  OWLEntity owlProperty) {
+	 
+	private void configureCommonSubstitutions(Map<SubstitutionVariable, String> substitutions) {
         substitutions.put(PACKAGE, options.getPackage());
         substitutions.put(DATE, new Date().toString());
         substitutions.put(USER, System.getProperty("user.name"));

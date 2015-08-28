@@ -171,8 +171,8 @@
             
             <plugin>  
                 <groupId>org.codehaus.mojo</groupId>  
-                <artifactId>exec-maven-plugin</artifactId>  
-                <version>1.2.1</version>  
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <executions>  
                     <execution>  
                         <phase>generate-test-sources</phase>  
@@ -183,9 +183,9 @@
 							<classpathScope>test</classpathScope>
 							<mainClass>org.protege.owl.codegeneration.test.GenerateTestCode</mainClass>
                         </configuration>  
-                    </execution>  
+                    </execution>
                 </executions>  
-            </plugin>  
+            </plugin> 
             
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

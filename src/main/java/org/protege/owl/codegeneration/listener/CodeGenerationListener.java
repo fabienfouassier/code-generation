@@ -48,7 +48,7 @@ public abstract class CodeGenerationListener<X extends WrappedIndividual> implem
         }
         finally {
             signature = factory.getOwlOntology().getIndividualsInSignature();
-        }            
+        }
     }
     
     private void reset() {
@@ -81,7 +81,7 @@ public abstract class CodeGenerationListener<X extends WrappedIndividual> implem
     
     private void handleModificationEvents(List<? extends OWLOntologyChange> changes) {
         for (OWLOntologyChange change : changes) {
-            if (change instanceof OWLAxiomChange) { 
+            if (change instanceof OWLAxiomChange) {
                 handleModificationEvent((OWLAxiomChange) change);
             }
         }
